@@ -1,0 +1,20 @@
+# VSCODE
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+# Local History for VS Code
+.history/
+
+# Credential Files
+**/credentials.json
+**/client_secrets.json
+**/client_secret.json
+
+#Other game files
+/new_game.py
+
+# Read Me
+**/README.md
