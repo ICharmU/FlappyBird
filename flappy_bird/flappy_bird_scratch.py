@@ -1,4 +1,4 @@
-import arcade, random, copy
+import arcade, random, copy, time
 
 #initialize game
 SCREEN_WIDTH = 800
@@ -10,13 +10,16 @@ RECT_HEIGHT = SCREEN_HEIGHT
 RECT_COLOR = arcade.color.BLUE #bottom
 RECT_COLOR_2 = arcade.color.BLACK #top
 
+BIRD_RADIUS = 12
+BIRD_COLOR = arcade.color.CYBER_YELLOW
+
 BACKGROUND_COLOR = arcade.color.RED
 
 class Pipe:
     def __init__(self):
         self.x = SCREEN_WIDTH/2
         self.y = SCREEN_HEIGHT * (-0.3 + 0.4 * random.random())
-        self.change_x = -3
+        self.change_x = -1.5
         self.change_y = 0
 
     def update(self):
@@ -38,7 +41,7 @@ class Pipe:
         return (self.x, self.y)
 
 #PipePair synchronizes each set of vertically aligned pipes
-class PipePair(Pipe):
+class PipePair:
     def __init__(self, pipe_1, pipe_2):
         self.pipe_1 = pipe_1
         self.pipe_2 = pipe_2
@@ -63,7 +66,30 @@ class PipePair(Pipe):
 
 
 class Bird:
-    pass
+    def __init__(self):
+        self.x = RECT_WIDTH/2
+        self.y = SCREEN_HEIGHT/2
+        self.change_x = 0
+        self.change_y = SCREEN_HEIGHT/20
+        self.time = 0
+        self.g_constant = 2
+
+    def draw(self):
+        arcade.draw_circle_filled(self.x, self.y, BIRD_RADIUS , BIRD_COLOR)
+
+    def update_pos(self, up=False):
+        if up:
+            for i in range(1,6):
+                self.y += (self.change_y * (2.5-i)**2)/10
+
+            self.time = 0
+    
+    def gravity(self):
+        self.y -= self.g_constant * self.time**2
+        self.time += 0.04
+
+    def get_coordinates(self):
+        return (self.x, self.y)
 
 class Game(arcade.Window):
     def __init__(self, width, height, title):
@@ -82,11 +108,16 @@ class Game(arcade.Window):
         self.clear()
         for pipe in pipepair_list:
             pipe.draw()
+        player_bird.gravity()
+        player_bird.draw()
         #arcade.draw_rectangle_filled(test.x, test.y, RECT_WIDTH, RECT_HEIGHT, arcade.color.PURPLE)
         #arcade.draw_rectangle_filled(test_2.x, test_2.y, RECT_WIDTH, RECT_HEIGHT, arcade.color.ORANGE)
 
     def on_key_press(self, key, modifiers):
-        pass
+        if key == arcade.key.W:
+            player_bird.update_pos(True)
+        else:
+            player_bird.update_pos()
 
 #create all sets of pipes
 def createPipePair():
@@ -103,7 +134,7 @@ for i in range(len(pipepair_list)):
     pipepair_list[i].pipe_1.x += i * SCREEN_WIDTH/3.5
     pipepair_list[i].pipe_2.x += i * SCREEN_WIDTH/3.5
 
-
+player_bird = Bird()
 
 #test pipe height for placement        
 '''
