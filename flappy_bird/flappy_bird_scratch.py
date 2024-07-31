@@ -1,4 +1,5 @@
 import arcade, random, copy, time
+import arcade.gui
 
 #initialize game
 SCREEN_WIDTH = 800
@@ -12,6 +13,12 @@ RECT_COLOR_2 = arcade.color.BLACK #top
 
 BIRD_RADIUS = 12
 BIRD_COLOR = arcade.color.CYBER_YELLOW
+
+START_X = SCREEN_WIDTH/2
+START_Y = SCREEN_HEIGHT/2
+START_WIDTH = 0.75*SCREEN_WIDTH
+START_HEIGHT = 0.3*SCREEN_HEIGHT
+START_COLOR = arcade.color.ORANGE_RED
 
 BACKGROUND_COLOR = arcade.color.RED
 
@@ -78,9 +85,11 @@ class Bird:
         arcade.draw_circle_filled(self.x, self.y, BIRD_RADIUS , BIRD_COLOR)
 
     def update_pos(self, up=False):
+        #give 10% room for error above/below pipe when moving
+        l = 2*16
         if up:
-            for i in range(1,6):
-                self.y += (self.change_y * (2.5-i)**2)/10
+            for i in range(1,l+1):
+                self.y += 3 * (self.change_y * (l-i)**2)/(l**3)
 
             self.time = 0
     
@@ -91,13 +100,38 @@ class Bird:
     def get_coordinates(self):
         return (self.x, self.y)
 
+
+class Start(arcade.Window):
+    def __init__(self, width, height, title):
+        super().__init__(width, height, title)
+
+        self.background_color = arcade.color.ORANGE_RED
+        arcade.set_background_color(self.background_color)
+
+        self.uimanager = arcade.gui.UIManager()
+        self.uimanager.enable()
+
+        start_button = arcade.gui.UIFlatButton(text="Start", width=SCREEN_WIDTH/3)
+        start_button.on_click = self.on_buttonclick
+
+        self.uimanager.add(arcade.gui.UIAnchorWidget(anchor_x="center_x",anchor_y="center_y",child=start_button))
+
+    def on_buttonclick(self, event):
+        arcade.close_window()
+        Game(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        arcade.run()
+
+    def on_draw(self):
+        arcade.start_render()
+        self.uimanager.draw()
+
+
 class Game(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
 
-        
-
         self.background_color = BACKGROUND_COLOR
+        arcade.set_background_color(self.background_color)
 
 
     def on_update(self, delta_time):
@@ -118,6 +152,9 @@ class Game(arcade.Window):
             player_bird.update_pos(True)
         else:
             player_bird.update_pos()
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        player_bird.update_pos(True)
 
 #create all sets of pipes
 def createPipePair():
@@ -146,7 +183,8 @@ test_2.y = 1.3*SCREEN_HEIGHT
 '''
 
 def main():
-    Game(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    Start(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    #Game(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     arcade.run()
     
     print('Game started')
