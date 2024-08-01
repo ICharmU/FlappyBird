@@ -85,7 +85,7 @@ class Bird:
         arcade.draw_circle_filled(self.x, self.y, BIRD_RADIUS , BIRD_COLOR)
 
     def update_pos(self, up=False):
-        #give 10% room for error above/below pipe when moving
+        #give room for error above/below pipe when moving
         l = 2*16
         if up:
             for i in range(1,l+1):
@@ -119,6 +119,36 @@ class Start(arcade.Window):
     def on_buttonclick(self, event):
         arcade.close_window()
         Game(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        time.sleep(1)
+        arcade.run()
+        
+
+    def on_draw(self):
+        arcade.start_render()
+        self.uimanager.draw()
+
+class End(arcade.Window):
+    def __init__(self, width, height, title):
+        super().__init__(width, height, title)
+
+        self.background_color = arcade.color.ORANGE_RED
+        arcade.set_background_color(self.background_color)
+
+        self.uimanager = arcade.gui.UIManager()
+        self.uimanager.enable()
+
+        end_button = arcade.gui.UIFlatButton(text="Play Again", width=SCREEN_WIDTH/3)
+        end_button.on_click = self.on_buttonclick
+
+        self.uimanager.add(arcade.gui.UIAnchorWidget(anchor_x="center_x",anchor_y="center_y",child=end_button))
+
+    def on_buttonclick(self, event):
+        arcade.close_window()
+        player_bird.y = START_Y
+        player_bird.time = 0
+        initialize_pipes()
+        Game(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        time.sleep(1)
         arcade.run()
 
     def on_draw(self):
@@ -133,7 +163,6 @@ class Game(arcade.Window):
         self.background_color = BACKGROUND_COLOR
         arcade.set_background_color(self.background_color)
 
-
     def on_update(self, delta_time):
         for pipe in pipepair_list:
             pipe.update() #update to match top pipe
@@ -144,8 +173,12 @@ class Game(arcade.Window):
             pipe.draw()
         player_bird.gravity()
         player_bird.draw()
-        #arcade.draw_rectangle_filled(test.x, test.y, RECT_WIDTH, RECT_HEIGHT, arcade.color.PURPLE)
-        #arcade.draw_rectangle_filled(test_2.x, test_2.y, RECT_WIDTH, RECT_HEIGHT, arcade.color.ORANGE)
+        if player_bird.get_coordinates()[1] < BIRD_RADIUS:
+            arcade.close_window()
+            End(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+            arcade.run()
+        elif player_bird.get_coordinates()[1] > SCREEN_HEIGHT - BIRD_RADIUS:
+            player_bird.y = SCREEN_HEIGHT - BIRD_RADIUS
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.W:
@@ -164,27 +197,21 @@ def createPipePair():
     pipepair = PipePair(pipe_bottom, pipe_top)   
     return pipepair
 
-pipepair_list = [createPipePair() for i in range(4)]
 
-#initialize pipe locations so they are equally spaced and will never overlap, even after prolonged play time
-for i in range(len(pipepair_list)):
-    pipepair_list[i].pipe_1.x += i * SCREEN_WIDTH/3.5
-    pipepair_list[i].pipe_2.x += i * SCREEN_WIDTH/3.5
+
+#initialize pipe locations so they are equally spaced and will never overlap
+def initialize_pipes():
+    global pipepair_list
+    pipepair_list = [createPipePair() for i in range(4)]
+    for i in range(len(pipepair_list)):
+        pipepair_list[i].pipe_1.x += i * SCREEN_WIDTH/3.5
+        pipepair_list[i].pipe_2.x += i * SCREEN_WIDTH/3.5
 
 player_bird = Bird()
 
-#test pipe height for placement        
-'''
-test = Pipe()
-test.y = -0.3*SCREEN_HEIGHT
-test_2 = copy.deepcopy(test)
-test_2.y = 1.3*SCREEN_HEIGHT
-
-'''
-
 def main():
+    initialize_pipes()
     Start(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-    #Game(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     arcade.run()
     
     print('Game started')
