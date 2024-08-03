@@ -60,6 +60,7 @@ class PipePair:
             self.pipe_2.x = self.pipe_1.get_coordinates()[0]
         if (self.pipe_1.update()):
             self.refill()
+            pipepair_list.append(pipepair_list.pop(0))
     
     def refill(self):
         self.pipe_1.refill()
@@ -80,9 +81,11 @@ class Bird:
         self.change_y = SCREEN_HEIGHT/20
         self.time = 0
         self.g_constant = 2
+        self.score = 0
 
     def draw(self):
         arcade.draw_circle_filled(self.x, self.y, BIRD_RADIUS , BIRD_COLOR)
+        self.draw_score()
 
     def update_pos(self, up=False):
         #give room for error above/below pipe when moving
@@ -99,6 +102,18 @@ class Bird:
 
     def get_coordinates(self):
         return (self.x, self.y)
+    
+    def set_score(self, value):
+        self.score = value
+
+    def draw_score(self):
+        PLAYER_SCORE = player_bird.score
+        SCORE_SIZE = 60
+        SCORE_X = SCREEN_WIDTH/2 - SCORE_SIZE/2
+        SCORE_Y = SCREEN_HEIGHT * (0.85)
+        SCORE_COLOR = arcade.color.WHITE
+        SCORE_FONT = "Arial"
+        arcade.draw_text(PLAYER_SCORE, SCORE_X, SCORE_Y, SCORE_COLOR, SCORE_SIZE, font_name = SCORE_FONT) 
 
 
 class Start(arcade.Window):
@@ -122,10 +137,10 @@ class Start(arcade.Window):
         time.sleep(1)
         arcade.run()
         
-
     def on_draw(self):
         arcade.start_render()
         self.uimanager.draw()
+
 
 class End(arcade.Window):
     def __init__(self, width, height, title):
@@ -148,12 +163,21 @@ class End(arcade.Window):
         player_bird.time = 0
         initialize_pipes()
         Game(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        player_bird.set_score(0)
         time.sleep(1)
         arcade.run()
 
     def on_draw(self):
         arcade.start_render()
         self.uimanager.draw()
+        
+        PLAYER_SCORE = player_bird.score
+        SCORE_SIZE = 30
+        SCORE_X = SCREEN_WIDTH/4
+        SCORE_Y = SCREEN_HEIGHT * (0.7)
+        SCORE_COLOR = arcade.color.MAROON
+        SCORE_FONT = "Arial"
+        arcade.draw_text(f"You scored {PLAYER_SCORE} points!", SCORE_X, SCORE_Y, SCORE_COLOR, SCORE_SIZE, width = SCREEN_WIDTH/2, align = "center", font_name = SCORE_FONT, bold=True) 
 
 
 class Game(arcade.Window):
@@ -166,6 +190,8 @@ class Game(arcade.Window):
     def on_update(self, delta_time):
         for pipe in pipepair_list:
             pipe.update() #update to match top pipe
+        if -5/3 < pipepair_list[0].pipe_1.get_coordinates()[0] - RECT_WIDTH/2 < 5/3:
+            player_bird.set_score(player_bird.score + 1)
 
     def on_draw(self):
         self.clear()
@@ -178,7 +204,7 @@ class Game(arcade.Window):
             End(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
             arcade.run()
         elif player_bird.get_coordinates()[1] > SCREEN_HEIGHT - BIRD_RADIUS:
-            player_bird.y = SCREEN_HEIGHT - BIRD_RADIUS
+            player_bird.y = SCREEN_HEIGHT - BIRD_RADIUS  
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.W:
@@ -188,6 +214,7 @@ class Game(arcade.Window):
 
     def on_mouse_press(self, x, y, button, modifiers):
         player_bird.update_pos(True)
+
 
 #create all sets of pipes
 def createPipePair():
