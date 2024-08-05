@@ -82,6 +82,7 @@ class Bird:
         self.time = 0
         self.g_constant = 2
         self.score = 0
+        self.HIGH_SCORE = 0
 
     def draw(self):
         arcade.draw_circle_filled(self.x, self.y, BIRD_RADIUS , BIRD_COLOR)
@@ -177,7 +178,7 @@ class End(arcade.Window):
         SCORE_Y = SCREEN_HEIGHT * (0.7)
         SCORE_COLOR = arcade.color.MAROON
         SCORE_FONT = "Arial"
-        arcade.draw_text(f"You scored {PLAYER_SCORE} points!", SCORE_X, SCORE_Y, SCORE_COLOR, SCORE_SIZE, width = SCREEN_WIDTH/2, align = "center", font_name = SCORE_FONT, bold=True) 
+        arcade.draw_text(f"Your Score: {PLAYER_SCORE}\n\nHigh Score: {player_bird.HIGH_SCORE}", SCORE_X, SCORE_Y, SCORE_COLOR, SCORE_SIZE, width = SCREEN_WIDTH/2, align = "center", font_name = SCORE_FONT, bold=True) 
 
 
 class Game(arcade.Window):
@@ -201,6 +202,8 @@ class Game(arcade.Window):
         player_bird.draw()
         if player_bird.get_coordinates()[1] < BIRD_RADIUS:
             arcade.close_window()
+            if player_bird.score > player_bird.HIGH_SCORE:
+                player_bird.HIGH_SCORE = player_bird.score
             End(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
             arcade.run()
         elif player_bird.get_coordinates()[1] > SCREEN_HEIGHT - BIRD_RADIUS:
